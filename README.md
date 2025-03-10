@@ -15,7 +15,7 @@ Settings:
   addSetting(String name, Boolean toggle)
     - Adds a setting to the settings menu with the toggle button.
   addSetting(String name, int value)
-    - Adds a setting to the settings menu with an int value (23.3)
+    - Adds a setting to the settings menu with an int value (23)
 */
 ```
 
