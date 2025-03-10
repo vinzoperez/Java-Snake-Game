@@ -6,7 +6,7 @@ so with that being said... the goal of this repo is to add things but also keep 
 
 How to keep it beginner friendly?
 Comments! Do not overcomment please unless its a really complex thing for a beginner such as for loops.
-If you end up adding a new file please explain at the top what the file is for and a little documentation on it. An example would be creating a new Java Class called Settings, inside the class file I suggest writing a little bit about the class and what it does and how beginners (who are looking to mod the game and create custom modes) how they can achieve it, an example would be
+If you end up adding a new file please explain at the top what the file is for and a little documentation on it. An example would be creating a new Java Class called Settings, inside the class file I suggest writing something like this and what it does and how beginners (who are curious or whatever) can use it, an example would be
 
 ```
 /*
