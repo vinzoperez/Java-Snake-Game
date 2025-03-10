@@ -16,8 +16,8 @@ public class Board extends JPanel implements ActionListener {
     private final int RAND_POS = 29;
     private final int DELAY = 140;
 
-    private final int x[] = new int[ALL_DOTS];
-    private final int y[] = new int[ALL_DOTS];
+    private final int[] x = new int[ALL_DOTS];
+    private final int[] y = new int[ALL_DOTS];
 
     private int dots;
     private int apple_x;
@@ -221,44 +221,45 @@ public class Board extends JPanel implements ActionListener {
         public void keyPressed(KeyEvent e) {
 
             int key = e.getKeyCode();
+            if (onSameTile) { return; }
+            switch(e.getKeyCode()){
 
-            if ((key == KeyEvent.VK_LEFT) && (!rightDirection) && (!onSameTile)) {
-                leftDirection = true;
-                upDirection = false;
-                downDirection = false;
-                onSameTile = true;
+                case KeyEvent.VK_LEFT:
+                    leftDirection = true;
+                    upDirection = false;
+                    downDirection = false;
+                    onSameTile = true;
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    rightDirection = true;
+                    upDirection = false;
+                    downDirection = false;
+                    onSameTile = true;
+                    break;
+                case KeyEvent.VK_UP:
+                    upDirection = true;rightDirection = false;
+                    leftDirection = false;
+                    onSameTile = true;
+                    break;
+                case KeyEvent.VK_DOWN:
+                    downDirection = true;
+                    rightDirection = false;
+                    leftDirection = false;
+                    onSameTile = true;
+                    break;
+                case KeyEvent.VK_SPACE:
+                    if (!inGame) {
+                        inGame = true;
+                        rightDirection = true;
+                        leftDirection = false;
+                        upDirection = false;
+                        downDirection = false;
+                        onSameTile = false;
+                        initGame();
+                    }
+
             }
 
-            if ((key == KeyEvent.VK_RIGHT) && (!leftDirection) && !onSameTile) {
-                rightDirection = true;
-                upDirection = false;
-                downDirection = false;
-                onSameTile = true;
-            }
-
-            if ((key == KeyEvent.VK_UP) && (!downDirection) && !onSameTile) {
-                upDirection = true;
-                rightDirection = false;
-                leftDirection = false;
-                onSameTile = true;
-            }
-
-            if ((key == KeyEvent.VK_DOWN) && (!upDirection) && !onSameTile) {
-                downDirection = true;
-                rightDirection = false;
-                leftDirection = false;
-                onSameTile = true;
-            }
-
-            if ((key == KeyEvent.VK_SPACE) && (!inGame)) {
-                inGame = true;
-                rightDirection = true;
-                leftDirection = false;
-                upDirection = false;
-                downDirection = false;
-                onSameTile = false;
-                initGame();
-            }
         }
     }
 }
