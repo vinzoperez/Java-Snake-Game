@@ -19,7 +19,7 @@ Settings:
 */
 ```
 
-Also P.S I am completely new to java and just decided to yolo this repo, enjoy and be great fellas!
+Also P.S I am completely new to java and just decided to yolo this repo P.S i never used github before, enjoy and be great fellas!
 
 ## Future Plans:
 
