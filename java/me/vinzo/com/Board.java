@@ -14,7 +14,7 @@ public class Board extends JPanel implements ActionListener {
     private final int B_WIDTH = 300;
     private final int B_HEIGHT = 300;
     private final int DOT_SIZE = 10;
-    private final int ALL_DOTS = 900;
+    private int ALL_DOTS = 900;
     private final int RAND_POS = 29;
     private final int DELAY = 140;
 
@@ -37,15 +37,21 @@ public class Board extends JPanel implements ActionListener {
     private Image head;
 
     // Settings
-    int SETTING_APPLE_SPAWN = 1;
-    
+    Settings UserSettings = new Settings();
+    public int USER_MOVEMENT_SPEED;
+
     // Constructor Class
     public Board() {
+        UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
+        UserSettings.setMOVEMENT_SPEED(8);
 
+        USER_MOVEMENT_SPEED = 1;
+
+        ALL_DOTS = ALL_DOTS + USER_MOVEMENT_SPEED;
         initBoard();
     }
-    
-    // Setup The Board For The Game.
+
+    // Set up The Board For The Game.
     private void initBoard() {
 
         addKeyListener(new TAdapter());
@@ -56,7 +62,7 @@ public class Board extends JPanel implements ActionListener {
         loadImages();
         initGame();
     }
-    
+
     // Get Images Of Snake And Apples.
     private void loadImages() {
 
@@ -73,7 +79,7 @@ public class Board extends JPanel implements ActionListener {
             System.out.println("Error loading images!");
         }
     }
-    
+
     // Starts The Game dots = Snakes Length, for loop is the starting position, locate apples is how many apples to start with, and add a timer.
     private void initGame() {
 
@@ -84,12 +90,12 @@ public class Board extends JPanel implements ActionListener {
             y[z] = 50;
         }
 
-        locateApple(SETTING_APPLE_SPAWN);
+        locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
 
         timer = new Timer(DELAY, this);
         timer.start();
     }
-    
+
     // Override so we can add our own drawing func.
     @Override
     public void paintComponent(Graphics g) {
@@ -97,16 +103,13 @@ public class Board extends JPanel implements ActionListener {
 
         doDrawing(g);
     }
-    
-    // For loop gets all the apple locations inside the arraylist, then draws them to the board.
-    
+
+    // For EACH loop gets all the apple locations inside the arraylist, then draws them to the board.
     // Second for loop draws the snake
-    
     private void doDrawing(Graphics g) {
         if (!inGame) { gameOver(g); return; }
 
-        for (int i = 0; i < appleLocations.size(); i++) {
-            int[] appleLocation = appleLocations.get(i);
+        for (int[] appleLocation : appleLocations) {
             g.drawImage(apple, appleLocation[0], appleLocation[1], this);  // Draw each apple
         }
 
@@ -120,7 +123,7 @@ public class Board extends JPanel implements ActionListener {
         Toolkit.getDefaultToolkit().sync();
 
     }
-    
+
     // This is the game over screen when you lose
     private void gameOver(Graphics g) {
 
@@ -162,30 +165,36 @@ public class Board extends JPanel implements ActionListener {
             }
         }
     }
-    
+
     // Movement Handler For Snake
     private void move() {
-
-        for (int z = dots; z > 0; z--) {
-            x[z] = x[(z - 1)];
-            y[z] = y[(z - 1)];
+        // Move the body segments (start from the tail and move each to the previous position)
+        for (int z = dots - 1; z > 0; z--) {
+            x[z] = x[z - 1];
+            y[z] = y[z - 1];
         }
 
+        // Move the head by the required amount (taking into account USER_MOVEMENT_SPEED)
         if (leftDirection) {
-            x[0] -= DOT_SIZE;
+            x[0] -= DOT_SIZE + USER_MOVEMENT_SPEED; // Move head left
         }
 
         if (rightDirection) {
-            x[0] += DOT_SIZE;
+            x[0] += DOT_SIZE + USER_MOVEMENT_SPEED; // Move head right
         }
 
         if (upDirection) {
-            y[0] -= DOT_SIZE;
+            y[0] -= DOT_SIZE + USER_MOVEMENT_SPEED; // Move head up
         }
 
         if (downDirection) {
-            y[0] += DOT_SIZE;
+            y[0] += DOT_SIZE + USER_MOVEMENT_SPEED; // Move head down
         }
+
+        // Snap the head to the grid to avoid non-grid-aligned positions
+        x[0] = (x[0] / DOT_SIZE) * DOT_SIZE;
+        y[0] = (y[0] / DOT_SIZE) * DOT_SIZE;
+
         onSameTile = false;
     }
 
@@ -222,7 +231,7 @@ public class Board extends JPanel implements ActionListener {
             timer.stop();
         }
     }
-    
+
     // Locate (create) the apple little more complex so ill give it step by step inside
     private void locateApple(int value) {
         // Boolean for Valid Square
@@ -266,8 +275,8 @@ public class Board extends JPanel implements ActionListener {
             }
         }
     }
-    
-    
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -280,7 +289,7 @@ public class Board extends JPanel implements ActionListener {
 
         repaint();
     }
-    
+
     // Listens to User Inputs and uses a switch statement for optimization!
     private class TAdapter extends KeyAdapter {
         @Override
