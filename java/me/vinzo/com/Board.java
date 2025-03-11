@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 
 public class Board extends JPanel implements ActionListener {
@@ -20,8 +22,7 @@ public class Board extends JPanel implements ActionListener {
     private final int[] y = new int[ALL_DOTS];
 
     private int dots;
-    private int apple_x;
-    private int apple_y;
+    List<int[]> appleLocations = new ArrayList<>();
 
     private boolean leftDirection = false;
     private boolean rightDirection = true;
@@ -35,11 +36,16 @@ public class Board extends JPanel implements ActionListener {
     private Image apple;
     private Image head;
 
+    // Settings
+    int SETTING_APPLE_SPAWN = 1;
+    
+    // Constructor Class
     public Board() {
 
         initBoard();
     }
-
+    
+    // Setup The Board For The Game.
     private void initBoard() {
 
         addKeyListener(new TAdapter());
@@ -50,7 +56,8 @@ public class Board extends JPanel implements ActionListener {
         loadImages();
         initGame();
     }
-
+    
+    // Get Images Of Snake And Apples.
     private void loadImages() {
 
         ImageIcon iid = new ImageIcon("src/main/resources/dot.png");
@@ -66,51 +73,55 @@ public class Board extends JPanel implements ActionListener {
             System.out.println("Error loading images!");
         }
     }
-
+    
+    // Starts The Game dots = Snakes Length, for loop is the starting position, locate apples is how many apples to start with, and add a timer.
     private void initGame() {
 
-        dots = 10;
+        dots = 3;
 
         for (int z = 0; z < dots; z++) {
             x[z] = 50 - z * 10;
             y[z] = 50;
         }
 
-        locateApple();
+        locateApple(SETTING_APPLE_SPAWN);
 
         timer = new Timer(DELAY, this);
         timer.start();
     }
-
+    
+    // Override so we can add our own drawing func.
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         doDrawing(g);
     }
-
+    
+    // For loop gets all the apple locations inside the arraylist, then draws them to the board.
+    
+    // Second for loop draws the snake
+    
     private void doDrawing(Graphics g) {
+        if (!inGame) { gameOver(g); return; }
 
-        if (inGame) {
-
-            g.drawImage(apple, apple_x, apple_y, this);
-
-            for (int z = 0; z < dots; z++) {
-                if (z == 0) {
-                    g.drawImage(head, x[z], y[z], this);
-                } else {
-                    g.drawImage(ball, x[z], y[z], this);
-                }
-            }
-
-            Toolkit.getDefaultToolkit().sync();
-
-        } else {
-
-            gameOver(g);
+        for (int i = 0; i < appleLocations.size(); i++) {
+            int[] appleLocation = appleLocations.get(i);
+            g.drawImage(apple, appleLocation[0], appleLocation[1], this);  // Draw each apple
         }
-    }
 
+        for (int z = 0; z < dots; z++) {
+            if (z == 0) {
+                g.drawImage(head, x[z], y[z], this);
+            } else {
+                g.drawImage(ball, x[z], y[z], this);
+            }
+        }
+        Toolkit.getDefaultToolkit().sync();
+
+    }
+    
+    // This is the game over screen when you lose
     private void gameOver(Graphics g) {
 
         String msg = "Game Over";
@@ -128,15 +139,31 @@ public class Board extends JPanel implements ActionListener {
 
     }
 
+    // Check the apple location and see if the snake eats one.
+    // For loop checks all the apples location in array list
+    // Since we eat an apple we spawn in just 1 and not the settings value.
     private void checkApple() {
 
-        if ((x[0] == apple_x) && (y[0] == apple_y)) {
+        for (int i = 0; i < appleLocations.size(); i++) {
+            // Get the current apple's position
+            int[] appleLocation = appleLocations.get(i);
 
-            dots++;
-            locateApple();
+            // Check if the snake's head overlaps with the apple's position
+            if (x[0] == appleLocation[0] && y[0] == appleLocation[1]) {
+                dots++;  // Increase the size of the snake
+
+                // Remove the eaten apple from the list
+                appleLocations.remove(i);
+
+                // Generate a new apple to replace the eaten one
+                locateApple(1);  // Spawn one new apple (or you can pass the desired number of apples to spawn)
+
+                break;  // Exit the loop once we find an apple that the snake eats
+            }
         }
     }
-
+    
+    // Movement Handler For Snake
     private void move() {
 
         for (int z = dots; z > 0; z--) {
@@ -162,6 +189,9 @@ public class Board extends JPanel implements ActionListener {
         onSameTile = false;
     }
 
+    // Checks the collision
+    // First for loop checks snakes collision if its hitting itself
+    // and if statements just check if snake is in bounds of game window.
     private void checkCollision() {
 
         for (int z = dots; z > 0; z--) {
@@ -192,16 +222,52 @@ public class Board extends JPanel implements ActionListener {
             timer.stop();
         }
     }
+    
+    // Locate (create) the apple little more complex so ill give it step by step inside
+    private void locateApple(int value) {
+        // Boolean for Valid Square
+        boolean validSquare = false;
 
-    private void locateApple() {
+        for (int j = 0; j < value; j++) {
+            validSquare = false;
 
-        int r = (int) (Math.random() * RAND_POS);
-        apple_x = ((r * DOT_SIZE));
+            // Continue trying until we find a valid position
+            while (!validSquare) {
+                int[] appleLocation = new int[2]; // [0] for x, [1] for y
 
-        r = (int) (Math.random() * RAND_POS);
-        apple_y = ((r * DOT_SIZE));
+                // Randomly generate x and y coordinates for the apple
+                for (int i = 0; i < 2; i++) {
+                    int r = (int) (Math.random() * RAND_POS);
+                    appleLocation[i] = r * DOT_SIZE;
+                }
+
+                validSquare = true;
+
+                // Check if the apple is on the snake or in another apple's location
+                for (int z = 0; z < dots; z++) {
+                    if (x[z] == appleLocation[0] && y[z] == appleLocation[1]) {
+                        validSquare = false;  // If occupied by snake, try again
+                        break;
+                    }
+                }
+
+                // Check if the apple is in any existing apple location
+                for (int[] loc : appleLocations) {
+                    if (loc[0] == appleLocation[0] && loc[1] == appleLocation[1]) {
+                        validSquare = false;  // If occupied by another apple, try again
+                        break;
+                    }
+                }
+
+                // If a valid location is found, add it to the list of apple locations
+                if (validSquare) {
+                    appleLocations.add(appleLocation);
+                }
+            }
+        }
     }
-
+    
+    
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -214,9 +280,9 @@ public class Board extends JPanel implements ActionListener {
 
         repaint();
     }
-
+    
+    // Listens to User Inputs and uses a switch statement for optimization!
     private class TAdapter extends KeyAdapter {
-
         @Override
         public void keyPressed(KeyEvent e) {
 
