@@ -9,12 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 
+/*
+    Main Board Class That Holds The Game.
+    This class holds everything about the game this is the game functionality.
+    Hopefully will organize this code across multiple classes soon... lol
+
+*/
+
 public class Board extends JPanel implements ActionListener {
 
     private final int B_WIDTH = 300;
     private final int B_HEIGHT = 300;
-    private final int DOT_SIZE = 10;
-    private int ALL_DOTS = 900;
+    private final int DOT_SIZE = 20; // Higher the less spaces, Lower more spaces
+    private int ALL_DOTS = 900; // Default is 900
     private final int RAND_POS = 29;
     private int DELAY = 200;
 
@@ -41,11 +48,7 @@ public class Board extends JPanel implements ActionListener {
 
     // Constructor Class
     public Board() {
-        UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
-        UserSettings.setMOVEMENT_SPEED(5);
 
-        DELAY /= UserSettings.getMOVEMENT_SPEED();
-        System.out.println(ALL_DOTS);
         initBoard();
     }
 
@@ -65,13 +68,13 @@ public class Board extends JPanel implements ActionListener {
     private void loadImages() {
 
         ImageIcon iid = new ImageIcon("src/main/resources/dot.png");
-        ball = iid.getImage();
+        ball = iid.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
         ImageIcon iia = new ImageIcon("src/main/resources/apple.png");
-        apple = iia.getImage();
+        apple = iia.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
         ImageIcon iih = new ImageIcon("src/main/resources/head.png");
-        head = iih.getImage();
+        head = iih.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
         if (ball == null || apple == null || head == null) {
             System.out.println("Error loading images!");
@@ -88,7 +91,14 @@ public class Board extends JPanel implements ActionListener {
             y[z] = 50;
         }
 
+        // Load The User Settings
+
         locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
+        UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
+        UserSettings.setMOVEMENT_SPEED(.5);
+        UserSettings.setBOARD_COLOR("OCEAN");
+
+        DELAY /= UserSettings.getMOVEMENT_SPEED();
 
         timer = new Timer(DELAY, this);
         timer.start();
@@ -99,7 +109,50 @@ public class Board extends JPanel implements ActionListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        //drawCheckeredBackground(g);
+
         doDrawing(g);
+    }
+
+    private void drawCheckeredBackground(Graphics g)
+    {
+        if (!inGame) {return;}
+
+        int squareSize = DOT_SIZE;
+        String boardColor = UserSettings.getBOARD_COLOR();
+        Color colorOne = null;
+        Color colorTwo = null;
+
+
+
+        if (boardColor.equals("GRASS"))
+        {
+            colorOne = new Color(160,255,152);
+            colorTwo = new Color(119,184,113);
+        } else if (boardColor.equals("OCEAN")) {
+            colorOne = new Color(127,214,235);
+            colorTwo = new Color(55,103,221);
+        } else if (boardColor.equals("GRAY"))
+        {
+            colorOne = new Color(180,180,170);
+            colorTwo = new Color(120,120,120);
+        }
+
+        for (int i =0; i < B_WIDTH; i += squareSize)
+        {
+            for (int j=0; j < B_HEIGHT; j += squareSize)
+            {
+                if ((i / squareSize + j / squareSize) % 2 == 0)
+                {
+
+                    g.setColor(colorOne);
+                } else {
+                    g.setColor(colorTwo);
+                }
+                g.fillRect(i,j,squareSize,squareSize);
+            }
+        }
+
     }
 
     // For EACH loop gets all the apple locations inside the arraylist, then draws them to the board.
@@ -189,6 +242,8 @@ public class Board extends JPanel implements ActionListener {
             y[0] += DOT_SIZE;
         }
 
+        x[0] = (x[0] / DOT_SIZE) * DOT_SIZE;
+        y[0] = (y[0] / DOT_SIZE) * DOT_SIZE;
 
         onSameTile = false;
     }
@@ -229,20 +284,18 @@ public class Board extends JPanel implements ActionListener {
 
     // Locate (create) the apple little more complex so ill give it step by step inside
     private void locateApple(int value) {
-        // Boolean for Valid Square
         boolean validSquare = false;
 
         for (int j = 0; j < value; j++) {
             validSquare = false;
 
-            // Continue trying until we find a valid position
             while (!validSquare) {
                 int[] appleLocation = new int[2]; // [0] for x, [1] for y
 
                 // Randomly generate x and y coordinates for the apple
                 for (int i = 0; i < 2; i++) {
                     int r = (int) (Math.random() * RAND_POS);
-                    appleLocation[i] = r * DOT_SIZE;
+                    appleLocation[i] = r * DOT_SIZE;  // Ensure apple is placed on a grid multiple of DOT_SIZE
                 }
 
                 validSquare = true;
@@ -250,7 +303,7 @@ public class Board extends JPanel implements ActionListener {
                 // Check if the apple is on the snake or in another apple's location
                 for (int z = 0; z < dots; z++) {
                     if (x[z] == appleLocation[0] && y[z] == appleLocation[1]) {
-                        validSquare = false;  // If occupied by snake, try again
+                        validSquare = false;
                         break;
                     }
                 }
@@ -258,12 +311,11 @@ public class Board extends JPanel implements ActionListener {
                 // Check if the apple is in any existing apple location
                 for (int[] loc : appleLocations) {
                     if (loc[0] == appleLocation[0] && loc[1] == appleLocation[1]) {
-                        validSquare = false;  // If occupied by another apple, try again
+                        validSquare = false;
                         break;
                     }
                 }
 
-                // If a valid location is found, add it to the list of apple locations
                 if (validSquare) {
                     appleLocations.add(appleLocation);
                 }
