@@ -42,7 +42,7 @@ public class Board extends JPanel implements ActionListener {
     // Constructor Class
     public Board() {
         UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
-        UserSettings.setMOVEMENT_SPEED(1);
+        UserSettings.setMOVEMENT_SPEED(5);
 
         DELAY /= UserSettings.getMOVEMENT_SPEED();
         System.out.println(ALL_DOTS);
