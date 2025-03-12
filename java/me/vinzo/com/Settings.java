@@ -65,7 +65,7 @@ public class Settings {
         {
             if (boardColor.equals(newValue))
             {
-                BOARD_COLOR = newValue;
+                BOARD_COLOR = newValue.toUpperCase();
             }
         }
     }
