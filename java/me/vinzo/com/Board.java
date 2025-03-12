@@ -16,7 +16,7 @@ public class Board extends JPanel implements ActionListener {
     private final int DOT_SIZE = 10;
     private int ALL_DOTS = 900;
     private final int RAND_POS = 29;
-    private final int DELAY = 140;
+    private int DELAY = 200;
 
     private final int[] x = new int[ALL_DOTS];
     private final int[] y = new int[ALL_DOTS];
@@ -38,16 +38,14 @@ public class Board extends JPanel implements ActionListener {
 
     // Settings
     Settings UserSettings = new Settings();
-    public int USER_MOVEMENT_SPEED;
 
     // Constructor Class
     public Board() {
         UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
-        UserSettings.setMOVEMENT_SPEED(8);
+        UserSettings.setMOVEMENT_SPEED(1);
 
-        USER_MOVEMENT_SPEED = 1;
-
-        ALL_DOTS = ALL_DOTS + USER_MOVEMENT_SPEED;
+        DELAY /= UserSettings.getMOVEMENT_SPEED();
+        System.out.println(ALL_DOTS);
         initBoard();
     }
 
@@ -169,31 +167,28 @@ public class Board extends JPanel implements ActionListener {
     // Movement Handler For Snake
     private void move() {
         // Move the body segments (start from the tail and move each to the previous position)
-        for (int z = dots - 1; z > 0; z--) {
-            x[z] = x[z - 1];
-            y[z] = y[z - 1];
+        for (int z = dots; z > 0; z--) {
+            x[z] = x[(z - 1)];
+            y[z] = y[(z - 1)];
         }
 
         // Move the head by the required amount (taking into account USER_MOVEMENT_SPEED)
         if (leftDirection) {
-            x[0] -= DOT_SIZE + USER_MOVEMENT_SPEED; // Move head left
+            x[0] -= DOT_SIZE;
         }
 
         if (rightDirection) {
-            x[0] += DOT_SIZE + USER_MOVEMENT_SPEED; // Move head right
+            x[0] += DOT_SIZE;
         }
 
         if (upDirection) {
-            y[0] -= DOT_SIZE + USER_MOVEMENT_SPEED; // Move head up
+            y[0] -= DOT_SIZE;
         }
 
         if (downDirection) {
-            y[0] += DOT_SIZE + USER_MOVEMENT_SPEED; // Move head down
+            y[0] += DOT_SIZE;
         }
 
-        // Snap the head to the grid to avoid non-grid-aligned positions
-        x[0] = (x[0] / DOT_SIZE) * DOT_SIZE;
-        y[0] = (y[0] / DOT_SIZE) * DOT_SIZE;
 
         onSameTile = false;
     }
@@ -205,7 +200,7 @@ public class Board extends JPanel implements ActionListener {
 
         for (int z = dots; z > 0; z--) {
 
-            if ((z > 3) && (x[0] == x[z]) && (y[0] == y[z])) {
+            if ((z > 4) && (x[0] == x[z]) && (y[0] == y[z])) {
                 inGame = false;
                 break;
             }
@@ -276,7 +271,20 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    private void restartGame() {
+        inGame = true;
+        leftDirection = false;
+        rightDirection = true;
+        upDirection = false;
+        downDirection = false;
 
+        dots = 3;
+        for (int i = 0; i < dots; i++) {
+            x[i] = 50 - i * 10; y[i] = 50;
+        }
+        locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
+        timer.start();
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -296,45 +304,35 @@ public class Board extends JPanel implements ActionListener {
         public void keyPressed(KeyEvent e) {
 
             int key = e.getKeyCode();
-            if (onSameTile) { return; }
-            switch(e.getKeyCode()){
 
-                case KeyEvent.VK_LEFT:
-                    leftDirection = true;
-                    upDirection = false;
-                    downDirection = false;
-                    onSameTile = true;
-                    break;
-                case KeyEvent.VK_RIGHT:
-                    rightDirection = true;
-                    upDirection = false;
-                    downDirection = false;
-                    onSameTile = true;
-                    break;
-                case KeyEvent.VK_UP:
-                    upDirection = true;rightDirection = false;
-                    leftDirection = false;
-                    onSameTile = true;
-                    break;
-                case KeyEvent.VK_DOWN:
-                    downDirection = true;
-                    rightDirection = false;
-                    leftDirection = false;
-                    onSameTile = true;
-                    break;
-                case KeyEvent.VK_SPACE:
-                    if (!inGame) {
-                        inGame = true;
-                        rightDirection = true;
-                        leftDirection = false;
-                        upDirection = false;
-                        downDirection = false;
-                        onSameTile = false;
-                        initGame();
-                    }
+            if ((key == KeyEvent.VK_LEFT) && (!rightDirection) && (!onSameTile)) {
+                leftDirection = true;
+                upDirection = false;
+                downDirection = false;
+                onSameTile = true;
+            }
+            if ((key == KeyEvent.VK_RIGHT) && (!leftDirection) && (!onSameTile)) {
+                rightDirection = true;
+                upDirection = false;
+                downDirection = false;
+                onSameTile = true;
+            }
+            if ((key == KeyEvent.VK_UP) && (!downDirection) && (!onSameTile)) {
+                upDirection = true;
+                rightDirection = false;
+                leftDirection = false;
+                onSameTile = true;
+            }
+            if ((key == KeyEvent.VK_DOWN) && (!upDirection) && (!onSameTile)) {
+                downDirection = true;
+                rightDirection = false;
+                leftDirection = false;
+                onSameTile = true;
+            }
+            if ((key == KeyEvent.VK_SPACE)) {
+                restartGame();
 
             }
-
         }
     }
 }
