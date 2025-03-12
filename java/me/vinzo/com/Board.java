@@ -20,7 +20,7 @@ public class Board extends JPanel implements ActionListener {
 
     private final int B_WIDTH = 300;
     private final int B_HEIGHT = 300;
-    private final int DOT_SIZE = 20; // Higher the less spaces, Lower more spaces
+    private final int DOT_SIZE = 11; // Higher the less spaces, Lower more spaces
     private int ALL_DOTS = 900; // Default is 900
     private final int RAND_POS = 29;
     private int DELAY = 200;
@@ -85,19 +85,22 @@ public class Board extends JPanel implements ActionListener {
     private void initGame() {
 
         dots = 3;
-
+        int startY = (B_HEIGHT / 2) / DOT_SIZE * DOT_SIZE;
         for (int z = 0; z < dots; z++) {
-            x[z] = 50 - z * 10;
-            y[z] = 50;
+            x[z] = 50 - z * DOT_SIZE;
+            y[z] = startY;
         }
 
         // Load The User Settings
+        
+        UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
+        UserSettings.setMOVEMENT_SPEED(1);
+        UserSettings.setBOARD_COLOR("null");
+        if (UserSettings.getBOARD_COLOR().equals("null")) {
+            setBackground(Color.black);
+        }
 
         locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
-        UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
-        UserSettings.setMOVEMENT_SPEED(.5);
-        UserSettings.setBOARD_COLOR("OCEAN");
-
         DELAY /= UserSettings.getMOVEMENT_SPEED();
 
         timer = new Timer(DELAY, this);
@@ -120,6 +123,7 @@ public class Board extends JPanel implements ActionListener {
 
         int squareSize = DOT_SIZE;
         String boardColor = UserSettings.getBOARD_COLOR();
+        if (boardColor.equals("null")) { return; }
         Color colorOne = null;
         Color colorTwo = null;
 
@@ -286,16 +290,24 @@ public class Board extends JPanel implements ActionListener {
     private void locateApple(int value) {
         boolean validSquare = false;
 
+        // Loop to create multiple apples based on the input value
         for (int j = 0; j < value; j++) {
             validSquare = false;
 
             while (!validSquare) {
                 int[] appleLocation = new int[2]; // [0] for x, [1] for y
 
-                // Randomly generate x and y coordinates for the apple
-                for (int i = 0; i < 2; i++) {
-                    int r = (int) (Math.random() * RAND_POS);
-                    appleLocation[i] = r * DOT_SIZE;  // Ensure apple is placed on a grid multiple of DOT_SIZE
+                // Randomly generate x and y coordinates for the apple.
+                // Ensure the apple is within bounds (don't let it exceed the width or height)
+                int randX = (int) (Math.random() * (B_WIDTH / DOT_SIZE)); // Generate x position within grid bounds
+                int randY = (int) (Math.random() * (B_HEIGHT / DOT_SIZE)); // Generate y position within grid bounds
+
+                appleLocation[0] = randX * DOT_SIZE; // Convert to grid multiple of DOT_SIZE
+                appleLocation[1] = randY * DOT_SIZE; // Convert to grid multiple of DOT_SIZE
+
+                // Ensure that the apple is within the bounds of the board
+                if (appleLocation[0] >= B_WIDTH || appleLocation[1] >= B_HEIGHT) {
+                    continue; // Skip invalid locations that go beyond the board boundaries
                 }
 
                 validSquare = true;
@@ -303,7 +315,7 @@ public class Board extends JPanel implements ActionListener {
                 // Check if the apple is on the snake or in another apple's location
                 for (int z = 0; z < dots; z++) {
                     if (x[z] == appleLocation[0] && y[z] == appleLocation[1]) {
-                        validSquare = false;
+                        validSquare = false; // Apple location overlaps with the snake
                         break;
                     }
                 }
@@ -311,17 +323,19 @@ public class Board extends JPanel implements ActionListener {
                 // Check if the apple is in any existing apple location
                 for (int[] loc : appleLocations) {
                     if (loc[0] == appleLocation[0] && loc[1] == appleLocation[1]) {
-                        validSquare = false;
+                        validSquare = false; // Apple location overlaps with another apple
                         break;
                     }
                 }
 
+                // If valid, add the apple location to the list of apple locations
                 if (validSquare) {
                     appleLocations.add(appleLocation);
                 }
             }
         }
     }
+
 
     private void restartGame() {
         inGame = true;
@@ -334,6 +348,7 @@ public class Board extends JPanel implements ActionListener {
         for (int i = 0; i < dots; i++) {
             x[i] = 50 - i * 10; y[i] = 50;
         }
+        appleLocations.clear();
         locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
         timer.start();
     }
@@ -356,7 +371,6 @@ public class Board extends JPanel implements ActionListener {
         public void keyPressed(KeyEvent e) {
 
             int key = e.getKeyCode();
-
             if ((key == KeyEvent.VK_LEFT) && (!rightDirection) && (!onSameTile)) {
                 leftDirection = true;
                 upDirection = false;
@@ -382,7 +396,8 @@ public class Board extends JPanel implements ActionListener {
                 onSameTile = true;
             }
             if ((key == KeyEvent.VK_SPACE)) {
-                restartGame();
+                if (!inGame) { restartGame(); }
+
 
             }
         }
