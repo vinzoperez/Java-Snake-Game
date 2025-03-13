@@ -3,8 +3,6 @@ package me.vinzo.com;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -20,13 +18,13 @@ public class Board extends JPanel implements ActionListener {
 
     private final int B_WIDTH = 300;
     private final int B_HEIGHT = 300;
-    private final int DOT_SIZE = 11; // Higher the less spaces, Lower more spaces
+    private final int DOT_SIZE = 11; // Higher the fewer spaces, Lower more spaces
     private int ALL_DOTS = 900; // Default is 900
     private final int RAND_POS = 29;
-    private int DELAY = 200;
+    private int DELAY = 140;
 
-    private final int[] x = new int[ALL_DOTS];
-    private final int[] y = new int[ALL_DOTS];
+    private final int[] snakePositionX = new int[ALL_DOTS];
+    private final int[] snakePositionY = new int[ALL_DOTS];
 
     private int dots;
     List<int[]> appleLocations = new ArrayList<>();
@@ -48,14 +46,17 @@ public class Board extends JPanel implements ActionListener {
 
     // Constructor Class
     public Board() {
-
         initBoard();
     }
 
+
     // Set up The Board For The Game.
     private void initBoard() {
+        // we pass through this because it is an object of the Board
+        // If we dont pass "this" KEYWORD through we cannot access any public functions
+        // in the board class (setters, getters, restartgame)
 
-        addKeyListener(new TAdapter());
+        addKeyListener(new InputHandler(this));
         setBackground(Color.black);
         setFocusable(true);
 
@@ -87,12 +88,12 @@ public class Board extends JPanel implements ActionListener {
         dots = 3;
         int startY = (B_HEIGHT / 2) / DOT_SIZE * DOT_SIZE;
         for (int z = 0; z < dots; z++) {
-            x[z] = 50 - z * DOT_SIZE;
-            y[z] = startY;
+            snakePositionX[z] = 50 - z * DOT_SIZE;
+            snakePositionY[z] = startY;
         }
 
         // Load The User Settings
-        
+
         UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
         UserSettings.setMOVEMENT_SPEED(1);
         UserSettings.setBOARD_COLOR("null");
@@ -170,9 +171,9 @@ public class Board extends JPanel implements ActionListener {
 
         for (int z = 0; z < dots; z++) {
             if (z == 0) {
-                g.drawImage(head, x[z], y[z], this);
+                g.drawImage(head, snakePositionX[z], snakePositionY[z], this);
             } else {
-                g.drawImage(ball, x[z], y[z], this);
+                g.drawImage(ball, snakePositionX[z], snakePositionY[z], this);
             }
         }
         Toolkit.getDefaultToolkit().sync();
@@ -207,7 +208,7 @@ public class Board extends JPanel implements ActionListener {
             int[] appleLocation = appleLocations.get(i);
 
             // Check if the snake's head overlaps with the apple's position
-            if (x[0] == appleLocation[0] && y[0] == appleLocation[1]) {
+            if (snakePositionX[0] == appleLocation[0] && snakePositionY[0] == appleLocation[1]) {
                 dots++;  // Increase the size of the snake
 
                 // Remove the eaten apple from the list
@@ -225,29 +226,29 @@ public class Board extends JPanel implements ActionListener {
     private void move() {
         // Move the body segments (start from the tail and move each to the previous position)
         for (int z = dots; z > 0; z--) {
-            x[z] = x[(z - 1)];
-            y[z] = y[(z - 1)];
+            snakePositionX[z] = snakePositionX[(z - 1)];
+            snakePositionY[z] = snakePositionY[(z - 1)];
         }
 
         // Move the head by the required amount (taking into account USER_MOVEMENT_SPEED)
         if (leftDirection) {
-            x[0] -= DOT_SIZE;
+            snakePositionX[0] -= DOT_SIZE;
         }
 
         if (rightDirection) {
-            x[0] += DOT_SIZE;
+            snakePositionX[0] += DOT_SIZE;
         }
 
         if (upDirection) {
-            y[0] -= DOT_SIZE;
+            snakePositionY[0] -= DOT_SIZE;
         }
 
         if (downDirection) {
-            y[0] += DOT_SIZE;
+            snakePositionY[0] += DOT_SIZE;
         }
 
-        x[0] = (x[0] / DOT_SIZE) * DOT_SIZE;
-        y[0] = (y[0] / DOT_SIZE) * DOT_SIZE;
+        snakePositionX[0] = (snakePositionX[0] / DOT_SIZE) * DOT_SIZE;
+        snakePositionY[0] = (snakePositionY[0] / DOT_SIZE) * DOT_SIZE;
 
         onSameTile = false;
     }
@@ -259,25 +260,25 @@ public class Board extends JPanel implements ActionListener {
 
         for (int z = dots; z > 0; z--) {
 
-            if ((z > 4) && (x[0] == x[z]) && (y[0] == y[z])) {
+            if ((z > 4) && (snakePositionX[0] == snakePositionX[z]) && (snakePositionY[0] == snakePositionX[z])) {
                 inGame = false;
                 break;
             }
         }
 
-        if (y[0] >= B_HEIGHT) {
+        if (snakePositionY[0] >= B_HEIGHT) {
             inGame = false;
         }
 
-        if (y[0] < 0) {
+        if (snakePositionY[0] < 0) {
             inGame = false;
         }
 
-        if (x[0] >= B_WIDTH) {
+        if (snakePositionX[0] >= B_WIDTH) {
             inGame = false;
         }
 
-        if (x[0] < 0) {
+        if (snakePositionX[0] < 0) {
             inGame = false;
         }
 
@@ -314,7 +315,7 @@ public class Board extends JPanel implements ActionListener {
 
                 // Check if the apple is on the snake or in another apple's location
                 for (int z = 0; z < dots; z++) {
-                    if (x[z] == appleLocation[0] && y[z] == appleLocation[1]) {
+                    if (snakePositionX[z] == appleLocation[0] && snakePositionY[z] == appleLocation[1]) {
                         validSquare = false; // Apple location overlaps with the snake
                         break;
                     }
@@ -337,20 +338,14 @@ public class Board extends JPanel implements ActionListener {
     }
 
 
-    private void restartGame() {
+    public void restartGame() {
         inGame = true;
         leftDirection = false;
         rightDirection = true;
         upDirection = false;
         downDirection = false;
-
-        dots = 3;
-        for (int i = 0; i < dots; i++) {
-            x[i] = 50 - i * 10; y[i] = 50;
-        }
         appleLocations.clear();
-        locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
-        timer.start();
+        initGame();
     }
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -365,41 +360,58 @@ public class Board extends JPanel implements ActionListener {
         repaint();
     }
 
-    // Listens to User Inputs and uses a switch statement for optimization!
-    private class TAdapter extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
+    // Getters and Setters and uses a switch statement for optimization!
 
-            int key = e.getKeyCode();
-            if ((key == KeyEvent.VK_LEFT) && (!rightDirection) && (!onSameTile)) {
-                leftDirection = true;
-                upDirection = false;
-                downDirection = false;
-                onSameTile = true;
-            }
-            if ((key == KeyEvent.VK_RIGHT) && (!leftDirection) && (!onSameTile)) {
-                rightDirection = true;
-                upDirection = false;
-                downDirection = false;
-                onSameTile = true;
-            }
-            if ((key == KeyEvent.VK_UP) && (!downDirection) && (!onSameTile)) {
-                upDirection = true;
-                rightDirection = false;
-                leftDirection = false;
-                onSameTile = true;
-            }
-            if ((key == KeyEvent.VK_DOWN) && (!upDirection) && (!onSameTile)) {
-                downDirection = true;
-                rightDirection = false;
-                leftDirection = false;
-                onSameTile = true;
-            }
-            if ((key == KeyEvent.VK_SPACE)) {
-                if (!inGame) { restartGame(); }
+    public boolean getDirection(String Direction)
+    {
+        String value = Direction.toLowerCase();
 
-
+        switch (value) {
+            case "left" -> {
+                return leftDirection;
+            }
+            case "right" -> {
+                return rightDirection;
+            }
+            case "up" -> {
+                return upDirection;
+            }
+            case "down" -> {
+                return downDirection;
             }
         }
+        return false;
+    }
+
+    public void setDirection(String Direction, boolean bool)
+    {
+        String value = Direction.toLowerCase();
+        switch (value) {
+            case "left" -> {
+                leftDirection = bool;
+            }
+            case "right" -> {
+                rightDirection = bool;
+            }
+            case "up" -> {
+                upDirection = bool;
+            }
+            case "down" -> {
+                downDirection = bool;
+            }
+        }
+    }
+
+    public boolean getOnSameTile()
+    {
+        return onSameTile;
+    }
+    public void setOnSameTile(boolean bool)
+    {
+        onSameTile = bool;
+    }
+    public boolean getInGame()
+    {
+        return inGame;
     }
 }
