@@ -3,6 +3,7 @@ package me.vinzo.com;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -18,7 +19,11 @@ public class Board extends JPanel implements ActionListener {
 
     private final int B_WIDTH = 300;
     private final int B_HEIGHT = 300;
-    private final int DOT_SIZE = 11; // Higher the fewer spaces, Lower more spaces
+    private final int DOT_SIZE = 20; // Higher the fewer spaces, Lower more spaces,
+                                        // {5 = MASSIVE playing space,
+                                        // 10 = Default playing space,
+                                        // 20 = Small playing space}
+
     private int ALL_DOTS = 900; // Default is 900
     private final int RAND_POS = 29;
     private int DELAY = 140;
@@ -28,6 +33,8 @@ public class Board extends JPanel implements ActionListener {
 
     private int dots;
     List<int[]> appleLocations = new ArrayList<>();
+    private int score;
+    private int highScore;
 
     private boolean leftDirection = false;
     private boolean rightDirection = true;
@@ -40,6 +47,9 @@ public class Board extends JPanel implements ActionListener {
     private Image ball;
     private Image apple;
     private Image head;
+
+    // Fonts
+    Font ScoreFont = new Font("Helvetica", Font.BOLD, 18);
 
     // Settings
     Settings UserSettings = new Settings();
@@ -57,7 +67,7 @@ public class Board extends JPanel implements ActionListener {
         // in the board class (setters, getters, restartgame)
 
         addKeyListener(new InputHandler(this));
-        setBackground(Color.black);
+        setBackground(Color.BLACK);
         setFocusable(true);
 
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
@@ -74,6 +84,8 @@ public class Board extends JPanel implements ActionListener {
         ImageIcon iia = new ImageIcon("src/main/resources/apple.png");
         apple = iia.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
+        //ImageIcon iih = new ImageIcon("src/main/resources/head.png");
+
         ImageIcon iih = new ImageIcon("src/main/resources/head.png");
         head = iih.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
@@ -84,7 +96,8 @@ public class Board extends JPanel implements ActionListener {
 
     // Starts The Game dots = Snakes Length, for loop is the starting position, locate apples is how many apples to start with, and add a timer.
     private void initGame() {
-
+        // Set score to 0 incase player restarts.
+        score = 0;
         dots = 3;
         int startY = (B_HEIGHT / 2) / DOT_SIZE * DOT_SIZE;
         for (int z = 0; z < dots; z++) {
@@ -94,14 +107,15 @@ public class Board extends JPanel implements ActionListener {
 
         // Load The User Settings
 
-        UserSettings.setSETTING_APPLE_SPAWN_RATE(5);
-        UserSettings.setMOVEMENT_SPEED(1);
-        UserSettings.setBOARD_COLOR("null");
+        UserSettings.setSETTING_APPLE_SPAWN_RATE(20); // 798 Apples is max, anything higher throws invis apple error.
+        UserSettings.setMOVEMENT_SPEED(.8);
+        UserSettings.setBOARD_COLOR("ocean");
         if (UserSettings.getBOARD_COLOR().equals("null")) {
             setBackground(Color.black);
         }
 
         locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
+
         DELAY /= UserSettings.getMOVEMENT_SPEED();
 
         timer = new Timer(DELAY, this);
@@ -113,8 +127,6 @@ public class Board extends JPanel implements ActionListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        //drawCheckeredBackground(g);
-
         doDrawing(g);
     }
 
@@ -122,12 +134,12 @@ public class Board extends JPanel implements ActionListener {
     {
         if (!inGame) {return;}
 
-        int squareSize = DOT_SIZE;
         String boardColor = UserSettings.getBOARD_COLOR();
         if (boardColor.equals("null")) { return; }
+
+        int squareSize = DOT_SIZE;
         Color colorOne = null;
         Color colorTwo = null;
-
 
 
         if (boardColor.equals("GRASS"))
@@ -149,7 +161,6 @@ public class Board extends JPanel implements ActionListener {
             {
                 if ((i / squareSize + j / squareSize) % 2 == 0)
                 {
-
                     g.setColor(colorOne);
                 } else {
                     g.setColor(colorTwo);
@@ -157,14 +168,6 @@ public class Board extends JPanel implements ActionListener {
                 g.fillRect(i,j,squareSize,squareSize);
             }
         }
-
-    }
-
-    // For EACH loop gets all the apple locations inside the arraylist, then draws them to the board.
-    // Second for loop draws the snake
-    private void doDrawing(Graphics g) {
-        if (!inGame) { gameOver(g); return; }
-
         for (int[] appleLocation : appleLocations) {
             g.drawImage(apple, appleLocation[0], appleLocation[1], this);  // Draw each apple
         }
@@ -176,6 +179,19 @@ public class Board extends JPanel implements ActionListener {
                 g.drawImage(ball, snakePositionX[z], snakePositionY[z], this);
             }
         }
+
+    }
+
+    // For EACH loop gets all the apple locations inside the arraylist, then draws them to the board.
+    // Second for loop draws the snake
+    private void doDrawing(Graphics g) {
+        if (!inGame) { gameOver(g); return; }
+
+        drawCheckeredBackground(g);
+        g.setColor(new Color(0, 0, 0));
+
+        g.setFont(ScoreFont);
+        g.drawString("Score: " + score + " (" + highScore + ")", 10,20);
         Toolkit.getDefaultToolkit().sync();
 
     }
@@ -184,12 +200,26 @@ public class Board extends JPanel implements ActionListener {
     private void gameOver(Graphics g) {
 
         String msg = "Game Over";
+        Font big = new Font("Helvetica", Font.BOLD, 24);
         Font small = new Font("Helvetica", Font.BOLD, 14);
         FontMetrics metr = getFontMetrics(small);
+        FontMetrics metrBig = getFontMetrics(big);
 
+        g.setColor(Color.RED);
+        g.setFont(big);
+        g.drawString(msg, (B_WIDTH - metrBig.stringWidth(msg)) / 2, B_HEIGHT / 2 - 80);
+
+        String scoreText = "Score: " + score + " (" + highScore + ")";
+        String highscoreText = "New Highscore: " + highScore;
         g.setColor(Color.WHITE);
         g.setFont(small);
-        g.drawString(msg, (B_WIDTH - metr.stringWidth(msg)) / 2, B_HEIGHT / 2);
+        if (score >= highScore)
+        {
+            g.drawString(highscoreText, (B_WIDTH - metr.stringWidth(highscoreText)) / 2, B_HEIGHT / 2 - 60);
+        } else {
+            g.drawString(scoreText, (B_WIDTH - metr.stringWidth(scoreText)) / 2, B_HEIGHT - 120);
+        }
+
 
         String playAgainText = "Press Space To Play Again";
         g.setColor(Color.GREEN);
@@ -212,6 +242,10 @@ public class Board extends JPanel implements ActionListener {
                 dots++;  // Increase the size of the snake
 
                 // Remove the eaten apple from the list
+                score++; // Add one to the score
+                if (score > highScore){
+                    highScore = score; // Give a live update of the new highScore;
+                }
                 appleLocations.remove(i);
 
                 // Generate a new apple to replace the eaten one
@@ -260,7 +294,7 @@ public class Board extends JPanel implements ActionListener {
 
         for (int z = dots; z > 0; z--) {
 
-            if ((z > 4) && (snakePositionX[0] == snakePositionX[z]) && (snakePositionY[0] == snakePositionX[z])) {
+            if ((z > 4) && (snakePositionX[0] == snakePositionX[z]) && (snakePositionY[0] == snakePositionY[z])) {
                 inGame = false;
                 break;
             }
