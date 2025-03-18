@@ -24,9 +24,6 @@ Also P.S I am completely new to java and just decided to yolo this repo P.S i ne
 ## Future Plans:
 
 - Menu
-- Score Tracker (High Score As Well)
 - Help
 - Settings
-- Custom Modes (More Apples, Speed Changes)
 - Demolish any bugs.
-- Better Icons Lol
