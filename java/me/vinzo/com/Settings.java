@@ -25,13 +25,17 @@ public class Settings {
     // Unused Settings / Future Settings
     private Color SNAKE_COLOR;
     private String BOARD_COLOR;
+    private String APPLE_TYPE;
     private final String[] BOARD_COLORS_SELECTION = {"GRASS", "OCEAN", "GRAY"};
+    private final String[] APPLE_TYPE_SELECTION = {"APPLE", "PEAR"};
+
     public Settings()
     {
         // Loads default settings.
         SETTING_APPLE_SPAWN_RATE = 1;
         MOVEMENT_SPEED = 1;
         BOARD_COLOR = "GRASS";
+        APPLE_TYPE = "APPLE";
     }
 
     public int getSETTING_APPLE_SPAWN_RATE()
@@ -63,9 +67,26 @@ public class Settings {
     {
         for (String boardColor : BOARD_COLORS_SELECTION)
         {
-            if (boardColor.equals(newValue))
+            if (boardColor.equalsIgnoreCase(newValue))
             {
                 BOARD_COLOR = newValue.toUpperCase();
+            }
+        }
+    }
+
+    public String getAPPLE_TYPE()
+    {
+        return APPLE_TYPE;
+    }
+
+    public void setAPPLE_TYPE(String newValue)
+    {
+        for (String appleType : APPLE_TYPE_SELECTION)
+        {
+            if (appleType.equalsIgnoreCase(newValue))
+            {
+                APPLE_TYPE = newValue.toUpperCase();
+
             }
         }
     }
