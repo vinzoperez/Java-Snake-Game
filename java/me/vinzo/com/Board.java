@@ -71,8 +71,12 @@ public class Board extends JPanel implements ActionListener {
         setFocusable(true);
 
         setPreferredSize(new Dimension(B_WIDTH, B_HEIGHT));
-        loadImages();
-        initGame();
+
+
+
+        // Initalize when we press start button
+
+        //initGame();
     }
 
     // Get Images Of Snake And Apples.
@@ -81,21 +85,35 @@ public class Board extends JPanel implements ActionListener {
         ImageIcon iid = new ImageIcon("src/main/resources/dot.png");
         ball = iid.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
-        ImageIcon iia = new ImageIcon("src/main/resources/apple.png");
-        apple = iia.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
-        //ImageIcon iih = new ImageIcon("src/main/resources/head.png");
 
         ImageIcon iih = new ImageIcon("src/main/resources/head.png");
         head = iih.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
+
+        ImageIcon iia = new ImageIcon("src/main/resources/apple.png");
+        System.out.println(UserSettings.getAPPLE_TYPE());
+        switch (UserSettings.getAPPLE_TYPE()) {
+            case "APPLE" -> {
+                break;
+            }
+            case "PEAR" -> {
+                System.out.println("Making Pear");
+                iia = new ImageIcon("src/main/resources/pear.png");
+                break;
+            }
+
+        }
+
+        apple = iia.getImage().getScaledInstance(DOT_SIZE, DOT_SIZE, Image.SCALE_SMOOTH);
 
         if (ball == null || apple == null || head == null) {
             System.out.println("Error loading images!");
         }
     }
 
+
     // Starts The Game dots = Snakes Length, for loop is the starting position, locate apples is how many apples to start with, and add a timer.
-    private void initGame() {
+    public void initGame() {
         // Set score to 0 incase player restarts.
         score = 0;
         dots = 3;
@@ -110,11 +128,14 @@ public class Board extends JPanel implements ActionListener {
         UserSettings.setSETTING_APPLE_SPAWN_RATE(20); // 798 Apples is max, anything higher throws invis apple error.
         UserSettings.setMOVEMENT_SPEED(.8);
         UserSettings.setBOARD_COLOR("ocean");
+        UserSettings.setAPPLE_TYPE("PEAR");
+
         if (UserSettings.getBOARD_COLOR().equals("null")) {
             setBackground(Color.black);
         }
-
+        loadImages();
         locateApple(UserSettings.getSETTING_APPLE_SPAWN_RATE());
+
 
         DELAY /= UserSettings.getMOVEMENT_SPEED();
 
