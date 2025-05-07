@@ -1,7 +1,7 @@
 # Java-Snake-Game
 Java Snake Game,
 This is a really basic code fundamental game I found online and added a few changes to it,
-This repo is used for beginners wondering how complex / technical coding methods work, or for those who want to play snake at work :), and AI machine learning, and especially those who want to contribute!
+This repo is used for beginners wondering how complex / technical coding methods work, or for those who want to play snake :), and AI machine learning, and especially those who want to contribute!
 The goal of this repo is to add things but also keep it beginner friendly...
 
 How to keep it beginner friendly?
@@ -27,3 +27,4 @@ Also P.S I am completely new to java and just decided to yolo this repo P.S i ne
 - Help
 - Settings
 - Demolish any bugs.
+- Rewrite in JavaFX (Over Summer)
